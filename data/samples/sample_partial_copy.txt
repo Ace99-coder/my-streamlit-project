@@ -1,0 +1,5 @@
+Our team explored several core ideas in modern predictive systems for this assignment. Data preprocessing is a critical step before training any machine learning model, since raw data often contains noise, missing values, and inconsistencies. We personally found the cleaning stage to be the most time-consuming part of the whole pipeline, taking almost two weeks of the six-week project.
+
+Supervised learning algorithms are trained using labeled datasets, where each input is paired with a known correct output. For our project, we labeled roughly four thousand images by hand using a simple annotation tool built by one of our teammates in a weekend.
+
+Finally, cross-validation is a widely used technique for estimating how well a model will generalize to independent data. We used five-fold cross-validation and observed a validation accuracy of about eighty-seven percent across folds.

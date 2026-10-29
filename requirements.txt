@@ -1,0 +1,33 @@
+# Core
+streamlit==1.38.0
+PyYAML==6.0.2
+python-dotenv==1.0.1
+
+# Document parsing
+pdfplumber==0.11.4
+PyPDF2==3.0.1
+python-docx==1.1.2
+
+# NLP / preprocessing
+nltk==3.9.1
+spacy==3.7.5
+
+# ML / similarity
+scikit-learn==1.5.1
+numpy==1.26.4
+sentence-transformers==3.0.1
+torch>=2.2.0
+
+# Database
+# sqlite3 is part of the Python standard library — no install needed
+
+# Visualization
+plotly==5.23.0
+matplotlib==3.9.1
+pandas==2.2.2
+
+# PDF report generation
+reportlab==4.2.2
+
+# Testing
+pytest==8.3.2

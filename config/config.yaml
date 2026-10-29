@@ -1,0 +1,139 @@
+# =============================================================================
+# AI Based Plagiarism Detection System — Configuration
+# =============================================================================
+# Every threshold and weight used by the detection/classification/adaptive
+# engines lives here so behaviour can be tuned WITHOUT touching code.
+# =============================================================================
+
+app:
+  name: "AI Based Plagiarism Detection System"
+  version: "1.0.0"
+  max_upload_size_mb: 20
+  allowed_extensions: [".pdf", ".txt", ".docx"]
+
+database:
+  path: "data/database.db"
+
+preprocessing:
+  lowercase: true
+  remove_punctuation: true
+  remove_stopwords: true
+  lemmatize: true
+  min_sentence_length: 4        # tokens; shorter sentences are ignored in sentence-level analysis
+
+# -----------------------------------------------------------------------------
+# Similarity detectors — each returns a 0-100 score
+# -----------------------------------------------------------------------------
+detectors:
+  exact_match:
+    enabled: true
+    method: "sequence_matcher"   # difflib SequenceMatcher ratio
+  tfidf:
+    enabled: true
+    ngram_range: [1, 2]
+    max_features: 5000
+  ngram:
+    enabled: true
+    sizes: [1, 2, 3]             # unigram, bigram, trigram
+    weights: [0.2, 0.35, 0.45]   # trigram overlap is the strongest signal of copying
+  semantic:
+    enabled: true
+    model_name: "all-MiniLM-L6-v2"
+    fallback_method: "tfidf_char_ngram"   # used only if the transformer model cannot be loaded (e.g. no internet)
+
+# -----------------------------------------------------------------------------
+# Plagiarism type classification — rule-based, transparent, editable
+# Rules are evaluated top-to-bottom; the first matching rule wins.
+# Placeholders: exact, tfidf, ngram, semantic  (all 0-100)
+# -----------------------------------------------------------------------------
+# NOTE ON THRESHOLDS:
+# difflib SequenceMatcher (used by exact_matcher.py) operates on character
+# sequences, not word boundaries — even two genuinely UNRELATED English
+# paragraphs typically share ~28-35% ratio just from common function words,
+# punctuation, and sentence rhythm. Every "exact_*" threshold below is
+# calibrated against that empirical baseline (see tests/ and README), not
+# against an idealized 0-100 scale where 0 means "no shared characters".
+classification_rules:
+  - type: "Direct Copy"
+    conditions:
+      exact_gte: 80
+      tfidf_gte: 65
+    confidence_base: 95
+
+  - type: "Paraphrased Plagiarism"
+    conditions:
+      exact_lt: 45
+      semantic_gte: 65
+    confidence_base: 88
+
+  - type: "Partial Copy"
+    conditions:
+      exact_between: [45, 75]
+      ngram_gte: 40
+      semantic_gte: 50
+    confidence_base: 82
+
+  - type: "Structural Similarity"
+    conditions:
+      exact_lt: 45
+      ngram_lt: 35
+      semantic_gte: 55
+    confidence_base: 75
+
+  - type: "Mixed or Complex Similarity"
+    conditions:
+      exact_between: [35, 85]
+      semantic_between: [35, 90]
+    confidence_base: 60
+
+  - type: "Low or No Significant Plagiarism"
+    conditions:
+      exact_lt: 40
+      semantic_lt: 35
+    confidence_base: 85
+
+  # Fallback if nothing above matches
+  - type: "Mixed or Complex Similarity"
+    conditions: {}
+    confidence_base: 50
+
+# -----------------------------------------------------------------------------
+# Adaptive weighting — one weight vector per detected plagiarism type.
+# Every vector MUST sum to 1.0 (validated at load time).
+# Order: [exact, tfidf, ngram, semantic]
+# -----------------------------------------------------------------------------
+adaptive_weights:
+  "Direct Copy":
+    weights: [0.40, 0.30, 0.20, 0.10]
+    reason: "Exact and lexical matching dominate because the content was copied near-verbatim."
+  "Partial Copy":
+    weights: [0.30, 0.25, 0.25, 0.20]
+    reason: "A mix of copied and original text means lexical and structural signals share importance."
+  "Paraphrased Plagiarism":
+    weights: [0.10, 0.20, 0.10, 0.60]
+    reason: "Wording differs but meaning is preserved, so semantic similarity is weighted most heavily."
+  "Structural Similarity":
+    weights: [0.10, 0.20, 0.20, 0.50]
+    reason: "Sentence order/structure mirrors the source even though exact wording differs."
+  "Mixed or Complex Similarity":
+    weights: [0.25, 0.25, 0.20, 0.30]
+    reason: "No single pattern dominates, so detection methods are weighted near-equally."
+  "Low or No Significant Plagiarism":
+    weights: [0.25, 0.25, 0.25, 0.25]
+    reason: "No strong pattern detected; equal weighting avoids overstating any one signal."
+
+# -----------------------------------------------------------------------------
+# Traditional fixed-weight scoring (Module 10: Adaptive vs Fixed comparison)
+# -----------------------------------------------------------------------------
+fixed_weights:
+  weights: [0.20, 0.25, 0.20, 0.35]
+  label: "Traditional Fixed-Weight Scoring"
+
+# -----------------------------------------------------------------------------
+# Report thresholds
+# -----------------------------------------------------------------------------
+scoring:
+  plagiarism_suspected_threshold: 40   # adaptive_score >= this => "Plagiarism Suspected"
+  sentence_flag_threshold: 65          # sentence-level similarity >= this => flagged as suspicious
+  high_similarity: 75
+  medium_similarity: 45
