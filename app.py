@@ -43,7 +43,7 @@ from utils.validators import ValidationError, validate_config_weights
 logging.basicConfig(level=logging.INFO)
 
 st.set_page_config(
-    page_title="AI Based Plagiarism Detection System",
+    page_title="Adaptive AI-Based Plagiarism Detection System",
     page_icon="🔎",
     layout="wide",
 )
