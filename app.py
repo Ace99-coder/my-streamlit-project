@@ -387,7 +387,7 @@ def page_home() -> None:
     st.markdown(
         '<div class="pd-hero">'
         '<div class="pd-badge">🔎 ADAPTIVE · EXPLAINABLE · AI-POWERED</div>'
-        '<div class="pd-title">AI Based Plagiarism<br>Detection System</div>'
+        '<div class="pd-title">Adaptive AI-Based Plagiarism<br>Detection System</div>'
         '<p class="pd-tagline">Detect, classify, and explain plagiarism using lexical and semantic '
         'similarity analysis. Know not just <em>how much</em> a document matches, '
         'but <em>what kind</em> of match it is.</p>'
@@ -859,7 +859,7 @@ def main() -> None:
     pages[page]()
 
     st.sidebar.divider()
-    st.sidebar.caption("AI Based Plagiarism Detection System v1.0")
+    st.sidebar.caption("Adaptive AI-Based Plagiarism Detection System v1.0")
 
 
 if __name__ == "__main__":
